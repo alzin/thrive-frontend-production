@@ -19,6 +19,7 @@ import api from '../services/api';
 import { checkAuth } from '../store/slices/authSlice';
 import { useDispatch } from 'react-redux';
 import { AppDispatch } from '../store/store';
+import { handlePasteCode } from '../utils/handlePasteCode';
 
 export const VerifyEmailPage: React.FC = () => {
     const navigate = useNavigate();
@@ -121,6 +122,27 @@ export const VerifyEmailPage: React.FC = () => {
             setResendLoading(false);
         }
     };
+
+    // const handlePaste = (e: React.ClipboardEvent) => {
+    //     e.preventDefault();
+    //     const pasted = e.clipboardData.getData("text").trim();
+    //     if (!/^\d+$/.test(pasted)) return; // only digits
+
+    //     const digits = pasted.slice(0, verificationCode.length).split("");
+    //     const newCode = [...verificationCode];
+
+    //     digits.forEach((digit, i) => {
+    //     newCode[i] = digit;
+    //     });
+
+    //     setVerificationCode(newCode);
+
+    //     // Move focus to the last filled box
+    //     const lastIndex = digits.length - 1;
+    //     if (inputRefs?.current[lastIndex]) {
+    //         inputRefs?.current[lastIndex]?.focus();
+    //     }
+    // };
 
     return (
         <Box
@@ -253,6 +275,7 @@ export const VerifyEmailPage: React.FC = () => {
                                             value={digit}
                                             onChange={(e) => handleCodeChange(index, e.target.value)}
                                             onKeyDown={(e) => handleKeyDown(index, e)}
+                                            onPaste={(e) => handlePasteCode(e, verificationCode, setVerificationCode, inputRefs)}
                                             inputProps={{
                                                 maxLength: 1,
                                                 style: {
