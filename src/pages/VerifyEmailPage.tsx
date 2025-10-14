@@ -123,27 +123,6 @@ export const VerifyEmailPage: React.FC = () => {
         }
     };
 
-    // const handlePaste = (e: React.ClipboardEvent) => {
-    //     e.preventDefault();
-    //     const pasted = e.clipboardData.getData("text").trim();
-    //     if (!/^\d+$/.test(pasted)) return; // only digits
-
-    //     const digits = pasted.slice(0, verificationCode.length).split("");
-    //     const newCode = [...verificationCode];
-
-    //     digits.forEach((digit, i) => {
-    //     newCode[i] = digit;
-    //     });
-
-    //     setVerificationCode(newCode);
-
-    //     // Move focus to the last filled box
-    //     const lastIndex = digits.length - 1;
-    //     if (inputRefs?.current[lastIndex]) {
-    //         inputRefs?.current[lastIndex]?.focus();
-    //     }
-    // };
-
     return (
         <Box
             sx={{
