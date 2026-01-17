@@ -149,7 +149,7 @@ export const SubscriptionPage: React.FC = () => {
             const response = await paymentService.createCheckoutSession({
                 planType: planId as 'monthly' | 'yearly',
                 mode: 'subscription',
-                successUrl: `${window.location.origin}/dashboard`,
+                successUrl: `${window.location.origin}/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
                 cancelUrl: `${window.location.origin}/subscription`,
                 metadata: {
                     plan: planId
