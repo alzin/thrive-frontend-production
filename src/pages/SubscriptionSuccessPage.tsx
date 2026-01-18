@@ -114,8 +114,6 @@ export const SubscriptionSuccessPage: React.FC = () => {
           sessionId,
         });
 
-        // console.log("✅ Payment Verified:", response.data);
-
         // 3. Process Success
         if (
           response.data.status === "paid" &&
@@ -126,16 +124,31 @@ export const SubscriptionSuccessPage: React.FC = () => {
           // --- GTM / Data Layer Logic ---
           window.dataLayer = window.dataLayer || [];
 
+          // Determine the correct value and currency logic
+          const isTrial = transactionDetails.isTrial || false;
+          const currency = transactionDetails.currency || "USD";
+          
+          let eventValue = transactionDetails.value;
+
+          if (isTrial) {
+             // If it's a trial, the value for GTM should be 0
+             eventValue = 0;
+          } else {
+             // If not JPY, divide by 100 (e.g. 2000 cents -> 20.00 USD)
+             if (currency.toUpperCase() !== "JPY") {
+                 eventValue = eventValue / 100;
+             }
+          }
+
           const gtmEventData = {
             event: "subscription_paid",
-            // These values come from your updated backend
-            value: transactionDetails.value, // e.g., 8800
-            currency: transactionDetails.currency,
+            value: eventValue, 
+            currency: currency,
             // Subscription Details
             subscription_plan: transactionDetails.plan,
             subscription_name: transactionDetails.name,
             billing_interval: transactionDetails.interval || "monthly",
-            is_trial: transactionDetails.isTrial || false,
+            is_trial: isTrial,
             // IDs
             transaction_id: transactionDetails.transactionId,
             stripe_subscription_id:
@@ -145,14 +158,14 @@ export const SubscriptionSuccessPage: React.FC = () => {
             // GA4 Ecommerce Object
             ecommerce: {
               transaction_id: transactionDetails.transactionId,
-              value: transactionDetails.value,
-              currency: transactionDetails.currency,
+              value: eventValue,
+              currency: currency,
               items: [
                 {
                   item_id: `subscription_${transactionDetails.plan}`,
                   item_name: transactionDetails.name,
                   item_category: "Subscription",
-                  price: transactionDetails.value,
+                  price: eventValue,
                   quantity: 1,
                 },
               ],
@@ -161,7 +174,7 @@ export const SubscriptionSuccessPage: React.FC = () => {
 
           // Push to GTM
           window.dataLayer.push(gtmEventData);
-        //   console.log("📊 GTM Data Pushed:", gtmEventData);
+          // console.log("📊 GTM Data Pushed:", gtmEventData);
         }
 
         setProcessed(true);
