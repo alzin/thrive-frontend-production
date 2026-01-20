@@ -101,7 +101,6 @@ export const SubscriptionSuccessPage: React.FC = () => {
 
       // Check if this session was already processed (prevent revisiting)
       if (isSessionProcessed(sessionId)) {
-        // Session already used, redirect to dashboard
         navigate("/dashboard", { replace: true });
         return;
       }
@@ -109,7 +108,7 @@ export const SubscriptionSuccessPage: React.FC = () => {
       if (processed) return;
 
       try {
-        // 2. Direct API Call (No PaymentService wrapper)
+        // 2. Direct API Call
         const response = await api.post("/payment/verify-checkout-session", {
           sessionId,
         });
@@ -124,57 +123,77 @@ export const SubscriptionSuccessPage: React.FC = () => {
           // --- GTM / Data Layer Logic ---
           window.dataLayer = window.dataLayer || [];
 
-          // Determine the correct value and currency logic
+          // Determine logic based on whether it is a Trial or Paid
           const isTrial = transactionDetails.isTrial || false;
           const currency = transactionDetails.currency || "USD";
-          
+
           let eventValue = transactionDetails.value;
 
-          if (isTrial) {
-             // If it's a trial, the value for GTM should be 0
-             eventValue = 0;
-          } else {
-             // If not JPY, divide by 100 (e.g. 2000 cents -> 20.00 USD)
-             if (currency.toUpperCase() !== "JPY") {
-                 eventValue = eventValue / 100;
-             }
+          // Helper: format value (divide by 100 if not JPY)
+          if (currency.toUpperCase() !== "JPY") {
+            eventValue = eventValue / 100;
           }
 
-          const gtmEventData = {
-            event: "subscription_paid",
-            value: eventValue, 
-            currency: currency,
-            // Subscription Details
-            subscription_plan: transactionDetails.plan,
-            subscription_name: transactionDetails.name,
-            billing_interval: transactionDetails.interval || "monthly",
-            is_trial: isTrial,
-            // IDs
-            transaction_id: transactionDetails.transactionId,
-            stripe_subscription_id:
-              transactionDetails.subscriptionId || "sub_unknown",
-            stripe_customer_id: transactionDetails.customerId || "cus_unknown",
-            user_id: metadata?.userId || null,
-            // GA4 Ecommerce Object
-            ecommerce: {
+          if (isTrial) {
+            // 🟢 CASE 1: FREE TRIAL (Value 0)
+            const trialEventData = {
+              event: "signup_free_trial",
+              value: 0,
+              currency: currency,
+              is_trial: true,
               transaction_id: transactionDetails.transactionId,
+              ecommerce: {
+                transaction_id: transactionDetails.transactionId,
+                value: 0, // Explicitly 0
+                currency: currency,
+                items: [
+                  {
+                    item_id: `trial_${transactionDetails.plan}`,
+                    item_name: transactionDetails.name || "Free Trial",
+                    item_category: "Subscription",
+                    price: 0,
+                    quantity: 1,
+                  },
+                ],
+              },
+              user_id: metadata?.userId || null,
+              is_subscription_paid: false,
+              subscription_status: "trial",
+            };
+
+            // console.log("📊 DataLayer Push (Free Trial):", trialEventData);
+            window.dataLayer.push(trialEventData);
+          } else {
+            // 🟢 CASE 2: PAID SUBSCRIPTION
+            const paidEventData = {
+              event: "subscription_paid",
               value: eventValue,
               currency: currency,
-              items: [
-                {
-                  item_id: `subscription_${transactionDetails.plan}`,
-                  item_name: transactionDetails.name,
-                  item_category: "Subscription",
-                  price: eventValue,
-                  quantity: 1,
-                },
-              ],
-            },
-          };
+              subscription_plan: transactionDetails.plan,
+              subscription_name: transactionDetails.name,
+              billing_interval: transactionDetails.interval || "monthly",
+              is_trial: false,
+              transaction_id: transactionDetails.transactionId,
+              user_id: metadata?.userId || null,
+              ecommerce: {
+                transaction_id: transactionDetails.transactionId,
+                value: eventValue,
+                currency: currency,
+                items: [
+                  {
+                    item_id: `subscription_${transactionDetails.plan}`,
+                    item_name: transactionDetails.name,
+                    item_category: "Subscription",
+                    price: eventValue,
+                    quantity: 1,
+                  },
+                ],
+              },
+            };
 
-          // Push to GTM
-          window.dataLayer.push(gtmEventData);
-          // console.log("📊 GTM Data Pushed:", gtmEventData);
+            // console.log("📊 DataLayer Push (Paid):", paidEventData);
+            window.dataLayer.push(paidEventData);
+          }
         }
 
         setProcessed(true);
