@@ -161,7 +161,7 @@ export const SubscriptionSuccessPage: React.FC = () => {
               subscription_status: "trial",
             };
 
-            console.log("📊 DataLayer Push (Free Trial):", trialEventData);
+            // console.log("📊 DataLayer Push (Free Trial):", trialEventData);
             window.dataLayer.push(trialEventData);
           } else {
             // 🟢 CASE 2: PAID SUBSCRIPTION
@@ -191,7 +191,7 @@ export const SubscriptionSuccessPage: React.FC = () => {
               },
             };
 
-            console.log("📊 DataLayer Push (Paid):", paidEventData);
+            // console.log("📊 DataLayer Push (Paid):", paidEventData);
             window.dataLayer.push(paidEventData);
           }
         }
