@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
 import CssBaseline from '@mui/material/CssBaseline';
@@ -9,18 +9,15 @@ import { theme } from './theme/theme';
 
 import { store, RootState, AppDispatch } from './store/store';
 import { Provider, useDispatch, useSelector } from 'react-redux';
-import { chackPayment, checkAuth } from './store/slices/authSlice';
+import { checkPayment, checkAuth } from './store/slices/authSlice';
 import { fetchDashboardData } from './store/slices/dashboardSlice';
-
 
 // Auth Pages
 import { LoginPage } from './pages/LoginPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
-import { ResetPasswordPage } from './pages/ResetPasswordPage'
-import { NewRegistrationPage } from './pages/NewRegistrationPage';
+import { ResetPasswordPage } from './pages/ResetPasswordPage';
+import { RegistrationPage } from './pages/RegistrationPage';
 import { VerifyEmailPage } from './pages/VerifyEmailPage';
-
-
 
 // Admin Pages
 import { Analytics } from './pages/admin/Analytics';
@@ -56,18 +53,20 @@ import { SubscriptionSuccessPage } from './pages/SubscriptionSuccessPage';
 function AppContent() {
   const dispatch = useDispatch<AppDispatch>();
   const { authChecking, isAuthenticated, paymentChecking } = useSelector((state: RootState) => state.auth);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const initApp = async () => {
-      await dispatch(checkAuth());
-      await dispatch(chackPayment());
+      await dispatch(checkPayment());
       await dispatch(fetchDashboardData());
+      await dispatch(checkAuth());
+      setLoading(false);
     };
 
     initApp();
   }, [dispatch]);
 
-  if (authChecking || paymentChecking) {
+  if (authChecking || loading || paymentChecking) {
     return (
       <Box
         sx={{
@@ -86,7 +85,7 @@ function AppContent() {
     <Router>
       <Routes>
 
-        <Route path="/register" element={<NewRegistrationPage />} />
+        <Route path="/register" element={<RegistrationPage />} />
         <Route path="/register/verify" element={<VerifyEmailPage />} />
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/profile/:userId" element={<PublicProfilePage />} />

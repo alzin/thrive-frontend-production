@@ -5,7 +5,7 @@ export interface Session {
   id: string;
   title: string;
   description: string;
-  type: 'SPEAKING' | 'EVENT';
+  type: 'SPEAKING' | 'EVENT' | 'STANDARD';
   hostId: string;
   hostName?: string;
   meetingUrl?: string;
@@ -72,14 +72,16 @@ export interface RecurringSessionDetails {
   };
 }
 
+export interface IFilters {
+  type: string;
+  isActive: string;
+  isRecurring: string;
+}
+
 interface SessionState {
   sessions: Session[];
   pagination: PaginationInfo;
-  filters: {
-    type: string;
-    isActive: string;
-    isRecurring: string;
-  };
+  filters: IFilters;
   loading: boolean;
   error: string | null;
 
@@ -97,7 +99,7 @@ interface SessionState {
   sessionForm: {
     title: string;
     description: string;
-    type: 'SPEAKING' | 'EVENT';
+    type: 'SPEAKING' | 'EVENT' | 'STANDARD';
     meetingUrl: string;
     location: string;
     scheduledAt: string;
@@ -141,8 +143,8 @@ const initialState: SessionState = {
     meetingUrl: '',
     location: '',
     scheduledAt: new Date().toISOString(),
-    duration: 30,
-    maxParticipants: 8,
+    duration: 60,
+    maxParticipants: 4,
     pointsRequired: 0,
     isActive: true,
     isRecurring: false,
@@ -263,8 +265,8 @@ const sessionSlice = createSlice({
         meetingUrl: '',
         location: '',
         scheduledAt: new Date().toISOString(),
-        duration: 30,
-        maxParticipants: 8,
+        duration: 60,
+        maxParticipants: 4,
         pointsRequired: 0,
         isActive: true,
         isRecurring: false,
