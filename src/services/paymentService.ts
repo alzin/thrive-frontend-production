@@ -9,8 +9,13 @@ export interface DiscountStatus {
 }
 
 export interface CheckoutSessionResponse {
-    sessionId: string;
+    sessionId?: string;
     isDiscounted: boolean;
+    isUpgrade?: boolean;
+    isDowngrade?: boolean;
+    upgraded?: boolean;
+    isPaidNow?: boolean;
+    message?: string;
 }
 
 export const paymentService = {
@@ -20,13 +25,20 @@ export const paymentService = {
     },
 
     async createCheckoutSession(data: {
-        planType: 'monthly' | 'yearly' | 'monthlySpecial';
+        planType: 'monthly' | 'yearly' | 'monthlySpecial' | 'standard' | 'premium';
         mode: 'payment' | 'subscription';
         successUrl: string;
         cancelUrl: string;
         metadata?: any;
+        hasTrial?: boolean;
     }): Promise<CheckoutSessionResponse> {
-        const response = await api.post('/payment/create-checkout-session', data);
+        const response = await api.post('/payment/create-checkout-session', {
+            ...data,
+            metadata: {
+                ...data.metadata,
+                hasTrial: data.hasTrial ?? true,
+            },
+        });
         return response.data;
     },
 };
