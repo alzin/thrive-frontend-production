@@ -17,6 +17,13 @@ ARG REACT_APP_API_URL
 ARG REACT_APP_STRIPE_PUBLIC_KEY
 ARG REACT_APP_GTM_ID
 
+# Debug: verify build args are received from Cloud Build
+RUN echo "=== Build Args Debug ===" && \
+    echo "REACT_APP_API_URL=${REACT_APP_API_URL}" && \
+    echo "REACT_APP_STRIPE_PUBLIC_KEY set: $([ -n "${REACT_APP_STRIPE_PUBLIC_KEY}" ] && echo 'YES' || echo 'NO')" && \
+    echo "REACT_APP_GTM_ID=${REACT_APP_GTM_ID}" && \
+    echo "========================"
+
 # Build the app (CI=false to treat warnings as warnings, not errors)
 ENV CI=false
 ENV NODE_ENV=production
