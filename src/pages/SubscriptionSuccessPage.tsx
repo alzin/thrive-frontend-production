@@ -118,7 +118,18 @@ export const SubscriptionSuccessPage: React.FC = () => {
           response.data.status === "paid" &&
           response.data.transactionDetails
         ) {
-          const { transactionDetails, metadata } = response.data;
+          const {
+            transactionDetails,
+            metadata,
+            trialConversion,
+            isFirstEverPaid,
+          } = response.data;
+
+          console.log("📊 GA4 Tracking Decision:", {
+            isTrial: transactionDetails.isTrial,
+            isFirstEverPaid,
+            willPushToGA4: transactionDetails.isTrial || isFirstEverPaid,
+          });
 
           // --- GTM / Data Layer Logic ---
           window.dataLayer = window.dataLayer || [];
@@ -161,10 +172,11 @@ export const SubscriptionSuccessPage: React.FC = () => {
               subscription_status: "trial",
             };
 
-            // console.log("📊 DataLayer Push (Free Trial):", trialEventData);
+            console.log("📊 DataLayer Push (Free Trial):", trialEventData);
             window.dataLayer.push(trialEventData);
-          } else {
-            // 🟢 CASE 2: PAID SUBSCRIPTION
+          } else if (isFirstEverPaid) {
+            // 🟢 CASE 2: FIRST-TIME PAID SUBSCRIPTION (fires only ONCE per user, ever)
+            // This is critical for GA4 tracking - prevents duplicate events on renewal/re-subscription
             const paidEventData = {
               event: "subscription_paid",
               value: eventValue,
@@ -191,8 +203,23 @@ export const SubscriptionSuccessPage: React.FC = () => {
               },
             };
 
-            // console.log("📊 DataLayer Push (Paid):", paidEventData);
+            console.log(
+              "📊 DataLayer Push (First-Time Paid - ONE TIME ONLY):",
+              paidEventData,
+            );
             window.dataLayer.push(paidEventData);
+          } else {
+            // 🔴 CASE 3: SUBSEQUENT PAYMENT (renewal, re-subscription after cancel)
+            // Do NOT push to dataLayer - user has already been tracked
+            console.log(
+              "ℹ️ Subsequent payment detected. NOT pushing to dataLayer (user already tracked).",
+            );
+            console.log("Payment details:", {
+              transaction_id: transactionDetails.transactionId,
+              value: eventValue,
+              currency: currency,
+              plan: transactionDetails.plan,
+            });
           }
         }
 
