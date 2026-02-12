@@ -574,7 +574,11 @@ export const Comments: React.FC<CommentsProps> = ({
   const { status: subStatus, user } = useSelector((state: RootState) => state.auth);
   const userRole = user?.role;
   const isAdmin = userRole === "ADMIN";
-  const isCanceled = subStatus === "canceled" && !isAdmin;
+  const isCanceled =
+    (subStatus === "canceled" ||
+      subStatus === "past_due" ||
+      subStatus === "unpaid") &&
+    !isAdmin;
 
   const announcement = useSelector((state: RootState) =>
     state.announcements.announcements.find((a) => a.id === postId),
