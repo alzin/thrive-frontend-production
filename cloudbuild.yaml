@@ -3,6 +3,12 @@ steps:
   - name: "gcr.io/cloud-builders/docker"
     args:
       - "build"
+      - "--build-arg"
+      - "REACT_APP_API_URL=${_REACT_APP_API_URL}"
+      - "--build-arg"
+      - "REACT_APP_STRIPE_PUBLIC_KEY=${_REACT_APP_STRIPE_PUBLIC_KEY}"
+      - "--build-arg"
+      - "REACT_APP_GTM_ID=${_REACT_APP_GTM_ID}"
       - "-t"
       - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/${REPO_NAME}/${REPO_NAME}:${COMMIT_SHA}"
       - "."
@@ -32,6 +38,9 @@ steps:
 
 substitutions:
   _REGION: asia-northeast1
+  _REACT_APP_API_URL: ""
+  _REACT_APP_STRIPE_PUBLIC_KEY: ""
+  _REACT_APP_GTM_ID: ""
 
 images:
   - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/${REPO_NAME}/${REPO_NAME}:${COMMIT_SHA}"
