@@ -20,12 +20,13 @@ import {
   Lock,
   Person,
 } from "@mui/icons-material";
-import { motion } from "framer-motion";
+import { color, motion } from "framer-motion";
 
 import { PasswordStrengthMeter, StepIndicator } from "../components/auth";
 import { FormInput } from "../components/ui/FormInput";
 import { useRegistration } from "../hooks/useRegistration";
 import { AuthLayout } from "../components/layout/AuthLayout";
+import { useRegistrationFlowData } from "../utils/registrationFlow";
 
 export const RegistrationPage: React.FC = () => {
   const {
@@ -43,8 +44,12 @@ export const RegistrationPage: React.FC = () => {
     setShowConfirmPassword,
     passwordStrength,
     passwordValue,
-    effectivePlan, 
+    effectivePlan,
   } = useRegistration();
+
+  // Get dynamic step configuration based on flow type
+  const { totalSteps, currentStepLabel } =
+    useRegistrationFlowData("basic_info");
 
   return (
     <AuthLayout>
@@ -76,7 +81,11 @@ export const RegistrationPage: React.FC = () => {
               </Typography>
             </Box>
 
-            <StepIndicator currentStep={1} label="Account Information" />
+            <StepIndicator
+              currentStep={1}
+              label={currentStepLabel}
+              totalSteps={totalSteps}
+            />
 
             {serverError && (
               <Alert
@@ -152,7 +161,7 @@ export const RegistrationPage: React.FC = () => {
                     }
                     label={
                       <Typography variant="body2">
-                        I agree to the{" "}
+                        <span style={{ color: "red" }}>*</span> I agree to the{" "}
                         <Link
                           to="/privacy-policy"
                           target="_blank"
@@ -161,6 +170,7 @@ export const RegistrationPage: React.FC = () => {
                         >
                           terms and conditions
                         </Link>
+                        .
                       </Typography>
                     }
                   />
@@ -169,6 +179,19 @@ export const RegistrationPage: React.FC = () => {
                       {errors.agreeToTerms.message}
                     </Typography>
                   )}
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        {...register("marketingEmails")}
+                        color="primary"
+                      />
+                    }
+                    label={
+                      <Typography variant="body2">
+                        I would like to receive marketing emails and updates.
+                      </Typography>
+                    }
+                  />
                 </Box>
                 <Button
                   type="submit"
