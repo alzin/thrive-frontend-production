@@ -56,7 +56,13 @@ export const PrivacyPolicyPage: React.FC = () => {
     const scrollToSection = (sectionId: string) => {
         const element = document.getElementById(sectionId);
         if (element) {
-            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            const topOffset = 24;
+            const elementTop = element.getBoundingClientRect().top + window.scrollY;
+
+            window.scrollTo({
+                top: elementTop - topOffset,
+                behavior: 'smooth',
+            });
         }
     };
 
@@ -149,52 +155,54 @@ export const PrivacyPolicyPage: React.FC = () => {
                 <Grid container spacing={4}>
                     {/* Table of Contents */}
                     <Grid size={{ xs: 12, md: 3 }}>
-                        <motion.div
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 0.5, delay: 0.2 }}
+                        <Box
+                            sx={{
+                                position: { md: 'sticky' },
+                                top: { md: 24 },
+                                mb: 4,
+                            }}
                         >
-                            <Card
-                                sx={{
-                                    position: { md: 'sticky' },
-                                    top: { md: 24 },
-                                    mb: 4,
-                                }}
+                            <motion.div
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ duration: 0.5, delay: 0.2 }}
                             >
-                                <CardContent>
-                                    <Typography variant="h6" fontWeight={600} gutterBottom>
-                                        Table of Contents
-                                    </Typography>
-                                    <List>
-                                        {sections.map((section) => (
-                                            <ListItem key={section.id} disablePadding>
-                                                <ListItemButton
-                                                    onClick={() => scrollToSection(section.id)}
-                                                    sx={{
-                                                        borderRadius: 1,
-                                                        mb: 0.5,
-                                                        '&:hover': {
-                                                            bgcolor: 'action.hover',
-                                                        },
-                                                    }}
-                                                >
-                                                    <ListItemIcon sx={{ minWidth: 36 }}>
-                                                        {section.icon}
-                                                    </ListItemIcon>
-                                                    <ListItemText
-                                                        primary={section.title}
-                                                        primaryTypographyProps={{
-                                                            variant: 'body2',
-                                                            fontWeight: 500,
+                                <Card>
+                                    <CardContent>
+                                        <Typography variant="h6" fontWeight={600} gutterBottom>
+                                            Table of Contents
+                                        </Typography>
+                                        <List>
+                                            {sections.map((section) => (
+                                                <ListItem key={section.id} disablePadding>
+                                                    <ListItemButton
+                                                        onClick={() => scrollToSection(section.id)}
+                                                        sx={{
+                                                            borderRadius: 1,
+                                                            mb: 0.5,
+                                                            '&:hover': {
+                                                                bgcolor: 'action.hover',
+                                                            },
                                                         }}
-                                                    />
-                                                </ListItemButton>
-                                            </ListItem>
-                                        ))}
-                                    </List>
-                                </CardContent>
-                            </Card>
-                        </motion.div>
+                                                    >
+                                                        <ListItemIcon sx={{ minWidth: 36 }}>
+                                                            {section.icon}
+                                                        </ListItemIcon>
+                                                        <ListItemText
+                                                            primary={section.title}
+                                                            primaryTypographyProps={{
+                                                                variant: 'body2',
+                                                                fontWeight: 500,
+                                                            }}
+                                                        />
+                                                    </ListItemButton>
+                                                </ListItem>
+                                            ))}
+                                        </List>
+                                    </CardContent>
+                                </Card>
+                            </motion.div>
+                        </Box>
                     </Grid>
 
                     {/* Content */}
