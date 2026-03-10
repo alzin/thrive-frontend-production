@@ -2,6 +2,7 @@
 import React from 'react';
 import { Container } from '@mui/material';
 import { VideoManagement } from '../../components/admin/VideoManagement';
+import AdminNavigationButton from '../../components/admin/AdminNavigationButton';
 
 export const AdminVideoPage: React.FC = () => {
   return (

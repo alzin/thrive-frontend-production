@@ -11,11 +11,7 @@ import {
   alpha,
 } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
-import {
-  NavigateNext,
-  AdminPanelSettings,
-  ArrowBack,
-} from "@mui/icons-material";
+import { NavigateNext, AdminPanelSettings, ArrowBack } from "@mui/icons-material";
 import { useSelector } from "react-redux";
 import { RootState } from "../store/store";
 import { SubscriptionManagement } from "../components/profile/SubscriptionManagement";
@@ -59,8 +55,8 @@ export const ManageSubscriptionPage: React.FC = () => {
               color="text.secondary"
               sx={{ maxWidth: 360 }}
             >
-              Admin accounts have full platform access by default. Subscriptions
-              are only for student accounts.
+              Admin accounts have full platform access by default.
+              Subscriptions are only for student accounts.
             </Typography>
             <Button
               variant="outlined"
@@ -104,10 +100,7 @@ export const ManageSubscriptionPage: React.FC = () => {
           >
             Profile
           </MuiLink>
-          <Typography
-            color="text.primary"
-            sx={{ fontSize: "0.875rem", fontWeight: 600 }}
-          >
+          <Typography color="text.primary" sx={{ fontSize: "0.875rem", fontWeight: 600 }}>
             Subscription
           </Typography>
         </Breadcrumbs>
