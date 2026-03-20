@@ -1,6 +1,6 @@
 // frontend/src/components/common/ProtectedRoute.tsx
 import React, { useEffect } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState, AppDispatch } from "../../store/store";
 import { checkAuth } from "../../store/slices/authSlice";
@@ -17,6 +17,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   requiredRole,
 }) => {
   const dispatch = useDispatch<AppDispatch>();
+  const location = useLocation();
   const {
     isAuthenticated,
     loading,
@@ -25,6 +26,8 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     isInFreeTrial,
     freeTrialExpired,
     status,
+    isTrialing,
+    trialBookingRequirementCompleted,
   } = useSelector((state: RootState) => state.auth);
 
   useEffect(() => {
@@ -74,6 +77,11 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   if (!hasValidAccess) {
     return <Navigate to="/subscription" replace />;
+  }
+
+  const isCalendarRoute = location.pathname.startsWith("/calendar");
+  if (!isAdmin && isTrialing && !trialBookingRequirementCompleted && !isCalendarRoute) {
+    return <Navigate to="/calendar" replace />;
   }
 
   if (requiredRole && user?.role !== requiredRole) {

@@ -7,6 +7,7 @@ import { Refresh } from "@mui/icons-material";
 
 import { RootState, AppDispatch } from "../store/store";
 import { fetchDashboardData } from "../store/slices/dashboardSlice";
+import { fetchUserBookings } from "../store/slices/calendarSlice";
 import {
   WelcomeSection,
   StatsGrid,
@@ -31,8 +32,20 @@ export const DashboardPage: React.FC = () => {
     error,
   } = useSelector((state: RootState) => state.dashboard);
 
+  const { isTrialing, trialBookingRequirementCompleted } = useSelector(
+    (state: RootState) => state.auth,
+  );
+  const { bookings } = useSelector((state: RootState) => state.calendar);
+
+  useEffect(() => {
+    if (isTrialing && !trialBookingRequirementCompleted && bookings.length <= 0) {
+      navigate("/calendar");
+    }
+  }, [isTrialing, trialBookingRequirementCompleted, bookings.length, navigate]);
+
   useEffect(() => {
     dispatch(fetchDashboardData());
+    dispatch(fetchUserBookings());
   }, [dispatch]);
 
   const handleRefresh = () => {

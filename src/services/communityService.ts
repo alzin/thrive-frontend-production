@@ -49,9 +49,17 @@ export interface MediaUploadResponse {
   files: UploadedMediaFile[];
 }
 
+export interface MediaUploadOptions {
+  targetFolder?: string;
+  customFileName?: string;
+}
+
 export const communityService = {
   // Media upload/delete
-  async uploadMedia(files: File[]): Promise<MediaUploadResponse> {
+  async uploadMedia(
+    files: File[],
+    options?: MediaUploadOptions,
+  ): Promise<MediaUploadResponse> {
     if (!files || files.length === 0) {
       throw new Error('No files provided for upload');
     }
@@ -60,6 +68,14 @@ export const communityService = {
     files.forEach((file, index) => {
       formData.append('media', file, file.name); // Explicitly pass filename
     });
+
+    if (options?.targetFolder) {
+      formData.append('targetFolder', options.targetFolder);
+    }
+
+    if (options?.customFileName) {
+      formData.append('customFileName', options.customFileName);
+    }
 
 
     const response = await api.post('/community/upload-media', formData, {

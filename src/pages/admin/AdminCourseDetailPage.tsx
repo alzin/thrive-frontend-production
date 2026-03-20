@@ -29,6 +29,7 @@ export const AdminCourseDetailPage: React.FC = () => {
   const { courseId } = useParams<{ courseId: string }>();
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [lessons, setLessons] = useState<StoredLesson[]>([]);
+  const [isLessonsLoading, setIsLessonsLoading] = useState(false);
   const [lessonDialog, setLessonDialog] = useState(false);
   const [editingLesson, setEditingLesson] = useState<LessonFormState | null>(null);
   const [bulkAudioDialog, setBulkAudioDialog] = useState(false);
@@ -100,6 +101,7 @@ export const AdminCourseDetailPage: React.FC = () => {
 
   const fetchLessons = async (courseId: string) => {
     try {
+      setIsLessonsLoading(true);
       const response = await api.get(`/courses/${courseId}/lessons`);
       const mapped: StoredLesson[] = (response.data as any[]).map((l) => ({
         id: l.id,
@@ -118,6 +120,8 @@ export const AdminCourseDetailPage: React.FC = () => {
       setLessons(mapped.sort((a, b) => a.order - b.order));
     } catch (error) {
       console.error("Failed to fetch lessons:", error);
+    } finally {
+      setIsLessonsLoading(false);
     }
   };
 
@@ -137,6 +141,7 @@ export const AdminCourseDetailPage: React.FC = () => {
 
       <LessonsList
         lessons={lessons}
+        isLoading={isLessonsLoading}
         fetchLessons={fetchLessons}
         selectedCourse={selectedCourse}
         setLessons={setLessons}

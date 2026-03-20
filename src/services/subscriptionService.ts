@@ -12,6 +12,9 @@ export interface SubscriptionStatus {
     freeTrialExpired: boolean;
     freeTrialEndDate: Date | null;
     trialConvertedToPaid: boolean;
+    hasBookedTrialSession: boolean;
+    hasSubmittedAlternativeTime: boolean;
+    trialBookingRequirementCompleted: boolean;
     subscription: {
         id: string;
         plan: string;
@@ -38,6 +41,11 @@ export const subscriptionService = {
     async checkSubscriptionStatus(): Promise<SubscriptionStatus> {
         const response = await api.get('/subscriptions/check', {});
         return response.data;
+    },
+
+    async submitTrialAlternativeTimeRequest(preferredTimes: string[], timeZone: string): Promise<{ submittedAt: string }> {
+        const response = await api.post('/subscriptions/trial-alternative-time', { preferredTimes, timeZone });
+        return response.data?.data;
     },
 
     async createCustomerPortal(): Promise<any> {

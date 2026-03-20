@@ -19,6 +19,7 @@ import {
   ListItem,
   ListItemText,
   Paper,
+  Skeleton,
   Stack,
   Typography,
   Grid,
@@ -45,10 +46,13 @@ interface LessonDetailsResponse {
 
 interface LessonsListProps {
   lessons: StoredLesson[];
+  isLoading: boolean;
   selectedCourse: Course | null;
   fetchLessons: (courseId: string) => void;
   setLessons: React.Dispatch<React.SetStateAction<StoredLesson[]>>;
-  setEditingLesson: React.Dispatch<React.SetStateAction<LessonFormState | null>>;
+  setEditingLesson: React.Dispatch<
+    React.SetStateAction<LessonFormState | null>
+  >;
   setLessonDialog: React.Dispatch<React.SetStateAction<boolean>>;
   setLessonForm: React.Dispatch<React.SetStateAction<LessonFormState>>;
 }
@@ -59,12 +63,19 @@ const typeMeta: Record<
 > = {
   VIDEO: { label: "Video", icon: <VideoLibrary fontSize="small" /> },
   PDF: { label: "PDF", icon: <PictureAsPdf fontSize="small" /> },
-  KEYWORDS: { label: "Keywords Practice", icon: <Translate fontSize="small" /> },
+  KEYWORDS: {
+    label: "Keywords Practice",
+    icon: <Translate fontSize="small" />,
+  },
   QUIZ: { label: "Quiz", icon: <QuizIcon fontSize="small" /> },
   SLIDES: { label: "Interactive Slides", icon: <Slideshow fontSize="small" /> },
 };
 
-const reorder = (arr: StoredLesson[], from: number, to: number): StoredLesson[] => {
+const reorder = (
+  arr: StoredLesson[],
+  from: number,
+  to: number,
+): StoredLesson[] => {
   const next = arr.slice();
   const [moved] = next.splice(from, 1);
   next.splice(to, 0, moved);
@@ -73,6 +84,7 @@ const reorder = (arr: StoredLesson[], from: number, to: number): StoredLesson[] 
 
 export const LessonsList: React.FC<LessonsListProps> = ({
   lessons,
+  isLoading,
   fetchLessons,
   selectedCourse,
   setLessons,
@@ -83,10 +95,13 @@ export const LessonsList: React.FC<LessonsListProps> = ({
   const [draggedLesson, setDraggedLesson] = useState<StoredLesson | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const hasCourse = Boolean(selectedCourse?.id);
+  const showSkeleton = isLoading && lessons.length === 0;
 
   const fetchLessonDetails = useCallback(async (lessonId: string) => {
     try {
-      const { data } = await api.get<LessonDetailsResponse>(`/admin/lessons/${lessonId}`);
+      const { data } = await api.get<LessonDetailsResponse>(
+        `/admin/lessons/${lessonId}`,
+      );
       return data ?? null;
     } catch (error) {
       console.error("Failed to fetch lesson details:", error);
@@ -97,7 +112,8 @@ export const LessonsList: React.FC<LessonsListProps> = ({
   const handleDeleteLesson = useCallback(
     async (lessonId: string) => {
       if (!hasCourse) return;
-      if (!window.confirm("Are you sure you want to delete this lesson?")) return;
+      if (!window.confirm("Are you sure you want to delete this lesson?"))
+        return;
       try {
         await api.delete(`/admin/lessons/${lessonId}`);
         fetchLessons(selectedCourse!.id);
@@ -105,15 +121,18 @@ export const LessonsList: React.FC<LessonsListProps> = ({
         console.error("Failed to delete lesson:", error);
       }
     },
-    [fetchLessons, hasCourse, selectedCourse]
+    [fetchLessons, hasCourse, selectedCourse],
   );
 
-  const handleDragStart = useCallback((e: React.DragEvent<HTMLDivElement>, lesson: StoredLesson) => {
-    setDraggedLesson(lesson);
-    e.dataTransfer.effectAllowed = "move";
-    e.dataTransfer.setData("text/plain", lesson.id);
-    if (e.currentTarget) e.currentTarget.style.opacity = "0.5";
-  }, []);
+  const handleDragStart = useCallback(
+    (e: React.DragEvent<HTMLDivElement>, lesson: StoredLesson) => {
+      setDraggedLesson(lesson);
+      e.dataTransfer.effectAllowed = "move";
+      e.dataTransfer.setData("text/plain", lesson.id);
+      if (e.currentTarget) e.currentTarget.style.opacity = "0.5";
+    },
+    [],
+  );
 
   const handleDragEnd = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     setDraggedLesson(null);
@@ -121,11 +140,14 @@ export const LessonsList: React.FC<LessonsListProps> = ({
     if (e.currentTarget) e.currentTarget.style.opacity = "1";
   }, []);
 
-  const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>, index: number) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "move";
-    setDragOverIndex(index);
-  }, []);
+  const handleDragOver = useCallback(
+    (e: React.DragEvent<HTMLDivElement>, index: number) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+      setDragOverIndex(index);
+    },
+    [],
+  );
 
   const handleDragLeave = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -159,8 +181,8 @@ export const LessonsList: React.FC<LessonsListProps> = ({
             api.put(`/admin/lessons/${lesson.id}`, {
               ...lesson,
               order: lesson.order,
-            })
-          )
+            }),
+          ),
         );
       } catch (error) {
         console.error("Failed to reorder lessons:", error);
@@ -169,21 +191,47 @@ export const LessonsList: React.FC<LessonsListProps> = ({
         alert("Failed to reorder lessons. Please try again.");
       }
     },
-    [draggedLesson, fetchLessons, hasCourse, lessons, selectedCourse, setLessons]
+    [
+      draggedLesson,
+      fetchLessons,
+      hasCourse,
+      lessons,
+      selectedCourse,
+      setLessons,
+    ],
   );
 
-  const courseType = useMemo(() => selectedCourse?.type?.replaceAll("_", " ") ?? "—", [selectedCourse]);
+  const courseType = useMemo(
+    () => selectedCourse?.type?.replaceAll("_", " ") ?? "—",
+    [selectedCourse],
+  );
 
   return (
     <Grid container spacing={3}>
-      <Grid size={{ xs: 12, md: 8}}>
+      <Grid size={{ xs: 12, md: 8 }}>
         <Card>
           <CardContent>
             <Typography variant="h6" fontWeight={600} gutterBottom>
               Lesson List
             </Typography>
             <List>
-              {lessons.map((lesson, index) => {
+              {showSkeleton
+                ? Array.from({ length: 4 }).map((_, index) => (
+                    <Paper key={`lesson-skeleton-${index}`} sx={{ mb: 2, p: 2 }}>
+                      <Stack spacing={1.5}>
+                        <Stack direction="row" alignItems="center" spacing={2}>
+                          <Skeleton variant="rounded" width={90} height={24} />
+                          <Skeleton variant="text" width="55%" height={28} />
+                        </Stack>
+                        <Stack direction="row" spacing={1.5}>
+                          <Skeleton variant="rounded" width={140} height={26} />
+                          <Skeleton variant="rounded" width={110} height={26} />
+                          <Skeleton variant="rounded" width={150} height={26} />
+                        </Stack>
+                      </Stack>
+                    </Paper>
+                  ))
+                : lessons.length > 0 ?lessons.map((lesson, index) => {
                 const meta = typeMeta[lesson.lessonType];
                 const hasContent =
                   lesson.lessonType === "KEYWORDS" ||
@@ -195,16 +243,16 @@ export const LessonsList: React.FC<LessonsListProps> = ({
                   lesson.lessonType === "KEYWORDS"
                     ? meta.label
                     : lesson.lessonType === "QUIZ"
-                    ? meta.label
-                    : lesson.lessonType === "SLIDES"
-                    ? meta.label
-                    : lesson.lessonType === "VIDEO"
-                    ? hasContent
-                      ? "Has Video"
-                      : "No Video"
-                    : hasContent
-                    ? "Has PDF"
-                    : "No PDF";
+                      ? meta.label
+                      : lesson.lessonType === "SLIDES"
+                        ? meta.label
+                        : lesson.lessonType === "VIDEO"
+                          ? hasContent
+                            ? "Has Video"
+                            : "No Video"
+                          : hasContent
+                            ? "Has PDF"
+                            : "No PDF";
 
                 return (
                   <Paper
@@ -221,10 +269,24 @@ export const LessonsList: React.FC<LessonsListProps> = ({
                       cursor: "grab",
                       transition: "all 0.2s ease",
                       transform:
-                        dragOverIndex === index && draggedLesson?.id !== lesson.id ? "translateY(-2px)" : "none",
-                      boxShadow: dragOverIndex === index && draggedLesson?.id !== lesson.id ? 3 : 1,
-                      borderLeft: dragOverIndex === index && draggedLesson?.id !== lesson.id ? "4px solid #1976d2" : "none",
-                      backgroundColor: draggedLesson?.id === lesson.id ? "rgba(0,0,0,0.05)" : "white",
+                        dragOverIndex === index &&
+                        draggedLesson?.id !== lesson.id
+                          ? "translateY(-2px)"
+                          : "none",
+                      boxShadow:
+                        dragOverIndex === index &&
+                        draggedLesson?.id !== lesson.id
+                          ? 3
+                          : 1,
+                      borderLeft:
+                        dragOverIndex === index &&
+                        draggedLesson?.id !== lesson.id
+                          ? "4px solid #1976d2"
+                          : "none",
+                      backgroundColor:
+                        draggedLesson?.id === lesson.id
+                          ? "rgba(0,0,0,0.05)"
+                          : "white",
                       "&:hover": { boxShadow: 2 },
                       "&:active": { cursor: "grabbing" },
                     }}
@@ -237,7 +299,9 @@ export const LessonsList: React.FC<LessonsListProps> = ({
                             onClick={async (e) => {
                               e.stopPropagation();
                               setEditingLesson(lesson);
-                              const details = await fetchLessonDetails(lesson.id);
+                              const details = await fetchLessonDetails(
+                                lesson.id,
+                              );
                               setLessonForm({
                                 title: lesson.title,
                                 description: lesson.description,
@@ -269,13 +333,26 @@ export const LessonsList: React.FC<LessonsListProps> = ({
                       }
                     >
                       <Stack direction="row" spacing={1} sx={{ mr: 1 }}>
-                        <DragIndicator sx={{ color: "action.active", alignSelf: "center", ml: 0.5 }} />
+                        <DragIndicator
+                          sx={{
+                            color: "action.active",
+                            alignSelf: "center",
+                            ml: 0.5,
+                          }}
+                        />
                       </Stack>
 
                       <ListItemText
                         primary={
-                          <Stack direction="row" alignItems="center" spacing={2}>
-                            <Chip label={`Lesson ${lesson.order}`} size="small" />
+                          <Stack
+                            direction="row"
+                            alignItems="center"
+                            spacing={2}
+                          >
+                            <Chip
+                              label={`Lesson ${lesson.order}`}
+                              size="small"
+                            />
                             <Typography variant="subtitle1" fontWeight={500}>
                               {lesson.title}
                             </Typography>
@@ -290,9 +367,17 @@ export const LessonsList: React.FC<LessonsListProps> = ({
                               color={hasContent ? "success" : "default"}
                               sx={{ color: hasContent ? "white" : undefined }}
                             />
-                            <Chip label={`${lesson.pointsReward} points`} size="small" color="primary" />
+                            <Chip
+                              label={`${lesson.pointsReward} points`}
+                              size="small"
+                              color="primary"
+                            />
                             {lesson.requiresReflection && (
-                              <Chip label="Reflection Required" size="small" color="secondary" />
+                              <Chip
+                                label="Reflection Required"
+                                size="small"
+                                color="secondary"
+                              />
                             )}
                           </Stack>
                         }
@@ -300,7 +385,11 @@ export const LessonsList: React.FC<LessonsListProps> = ({
                     </ListItem>
                   </Paper>
                 );
-              })}
+              }) : (
+                <Typography variant="body2" color="text.secondary">
+                  No lessons added yet. Click "Add Lesson" to create your first lesson.
+                </Typography>
+              )}
             </List>
           </CardContent>
         </Card>
@@ -313,31 +402,52 @@ export const LessonsList: React.FC<LessonsListProps> = ({
               Course Details
             </Typography>
             <Stack spacing={2}>
-              <Box>
-                <Typography variant="caption" color="text.secondary">
-                  Type
-                </Typography>
-                <Typography variant="body1">{courseType}</Typography>
-              </Box>
-              <Box>
-                <Typography variant="caption" color="text.secondary">
-                  Status
-                </Typography>
-                <Typography variant="body1">
-                  <Chip
-                    label={selectedCourse?.isActive ? "Active" : "Inactive"}
-                    color={selectedCourse?.isActive ? "success" : "default"}
-                    size="small"
-                    sx={{ color: selectedCourse?.isActive ? "white" : undefined }}
-                  />
-                </Typography>
-              </Box>
-              <Box>
-                <Typography variant="caption" color="text.secondary">
-                  Total Lessons
-                </Typography>
-                <Typography variant="body1">{lessons.length}</Typography>
-              </Box>
+              {showSkeleton ? (
+                <>
+                  <Box>
+                    <Skeleton variant="text" width={40} height={18} />
+                    <Skeleton variant="text" width={160} height={28} />
+                  </Box>
+                  <Box>
+                    <Skeleton variant="text" width={50} height={18} />
+                    <Skeleton variant="rounded" width={90} height={24} />
+                  </Box>
+                  <Box>
+                    <Skeleton variant="text" width={90} height={18} />
+                    <Skeleton variant="text" width={30} height={28} />
+                  </Box>
+                </>
+              ) : (
+                <>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary">
+                      Type
+                    </Typography>
+                    <Typography variant="body1">{courseType}</Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary">
+                      Status
+                    </Typography>
+                    <Typography variant="body1">
+                      <Chip
+                        label={selectedCourse?.isActive ? "Active" : "Inactive"}
+                        color={selectedCourse?.isActive ? "success" : "default"}
+                        size="small"
+                        sx={{
+                          color: selectedCourse?.isActive ? "white" : undefined,
+                        }}
+                      />
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary">
+                      Total Lessons
+                    </Typography>
+                    <Typography variant="body1">{lessons.length}</Typography>
+                  </Box>
+                </>
+              )}
             </Stack>
           </CardContent>
         </Card>

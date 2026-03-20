@@ -118,7 +118,7 @@ export const VerifyEmailPage: React.FC = () => {
         // Paid flow: redirect to subscription checkout
         window.location.href = `/subscription?plan=${storedPlan}`;
       } else {
-        // Free trial flow: Fire signup_free_trial event and redirect to dashboard
+        // Free trial flow: Fire signup_free_trial event and redirect to required booking step
         window.dataLayer = window.dataLayer || [];
 
         const trialEventData = {
@@ -150,7 +150,7 @@ export const VerifyEmailPage: React.FC = () => {
         console.table(trialEventData);
         window.dataLayer.push(trialEventData);
 
-        window.location.href = "/dashboard";
+        window.location.href = "/calendar";
       }
 
       await dispatch(checkAuth());

@@ -1,7 +1,11 @@
 import { useState, useEffect } from "react";
+import { useDispatch } from "react-redux";
 import { calendarService, CalendarSession, BookingEligibility } from "../../../services/calendarService";
+import { AppDispatch } from "../../../store/store";
+import { createBooking, fetchUserBookings } from "../../../store/slices/calendarSlice";
 
 export const useBookingDialog = () => {
+  const dispatch = useDispatch<AppDispatch>();
   const [bookingDialog, setBookingDialog] = useState<CalendarSession | null>(null);
   const [eligibility, setEligibility] = useState<BookingEligibility | null>(null);
   const [bookLoading, setBookLoading] = useState(false);
@@ -26,7 +30,8 @@ export const useBookingDialog = () => {
 
     try {
       setBookLoading(true);
-      await calendarService.createBooking(bookingDialog.id);
+      await dispatch(createBooking(bookingDialog.id)).unwrap();
+      await dispatch(fetchUserBookings()).unwrap();
       onSuccess();
       setBookingDialog(null);
     } catch (error) {

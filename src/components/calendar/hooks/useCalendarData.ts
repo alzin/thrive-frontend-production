@@ -1,33 +1,38 @@
-import { useState, useEffect } from "react";
-import { calendarService, CalendarSession, Booking, BookingLimits } from "../../../services/calendarService";
+import { useState, useEffect, useCallback } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  calendarService,
+  BookingLimits,
+} from "../../../services/calendarService";
+import { AppDispatch, RootState } from "../../../store/store";
+import {
+  fetchCalendarSessions,
+  fetchUserBookings,
+} from "../../../store/slices/calendarSlice";
 
 export const useCalendarData = (selectedDate: Date) => {
-  const [sessions, setSessions] = useState<CalendarSession[]>([]);
-  const [myBookings, setMyBookings] = useState<Booking[]>([]);
+  const dispatch = useDispatch<AppDispatch>();
+  const { sessions, bookings: myBookings, loading } = useSelector(
+    (state: RootState) => state.calendar,
+  );
+
   const [bookingLimits, setBookingLimits] = useState<BookingLimits | null>(null);
-  const [loading, setLoading] = useState(true);
   const [limitsLoading, setLimitsLoading] = useState(true);
 
-  const fetchCalendarData = async () => {
+  const fetchCalendarData = useCallback(async () => {
     try {
-      setLoading(true);
       const year = selectedDate.getFullYear();
       const month = selectedDate.getMonth() + 1;
 
-      const [sessionsData, bookingsData] = await Promise.all([
-        calendarService.getCalendarSessions(year, month),
-        calendarService.getUpcomingBookings(),
+      await Promise.all([
+        dispatch(fetchCalendarSessions({ year, month })).unwrap(),
+        dispatch(fetchUserBookings()).unwrap(),
       ]);
-
-      setSessions(sessionsData.sessions);
-      setMyBookings(bookingsData);
     } catch (error) {
       console.error("Failed to fetch calendar data:", error);
       throw error;
-    } finally {
-      setLoading(false);
     }
-  };
+  }, [dispatch, selectedDate]);
 
   const fetchBookingLimits = async () => {
     try {
@@ -53,7 +58,7 @@ export const useCalendarData = (selectedDate: Date) => {
   useEffect(() => {
     fetchCalendarData();
     fetchBookingLimits();
-  }, [selectedDate]);
+  }, [fetchCalendarData]);
 
   return {
     sessions,

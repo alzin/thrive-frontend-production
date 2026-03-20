@@ -23,6 +23,9 @@ interface AuthState {
   freeTrialExpired: boolean;
   freeTrialEndDate: Date | null;
   trialConvertedToPaid: boolean;
+  hasBookedTrialSession: boolean;
+  hasSubmittedAlternativeTime: boolean;
+  trialBookingRequirementCompleted: boolean;
   loading: boolean;
   authChecking: boolean;
   paymentChecking: boolean;
@@ -44,6 +47,9 @@ const initialState: AuthState = {
   freeTrialExpired: false,
   freeTrialEndDate: null,
   trialConvertedToPaid: false,
+  hasBookedTrialSession: false,
+  hasSubmittedAlternativeTime: false,
+  trialBookingRequirementCompleted: false,
   authChecking: true,
   paymentChecking: true,
   error: null,
@@ -177,6 +183,9 @@ const authSlice = createSlice({
         state.freeTrialExpired = action.payload.freeTrialExpired || false;
         state.freeTrialEndDate = action.payload.freeTrialEndDate || null;
         state.trialConvertedToPaid = action.payload.trialConvertedToPaid || false;
+        state.hasBookedTrialSession = action.payload.hasBookedTrialSession || false;
+        state.hasSubmittedAlternativeTime = action.payload.hasSubmittedAlternativeTime || false;
+        state.trialBookingRequirementCompleted = action.payload.trialBookingRequirementCompleted || false;
       })
       .addCase(checkPayment.rejected, (state) => {
         state.paymentChecking = false;
@@ -189,6 +198,9 @@ const authSlice = createSlice({
         state.freeTrialExpired = false;
         state.freeTrialEndDate = null;
         state.trialConvertedToPaid = false;
+        state.hasBookedTrialSession = false;
+        state.hasSubmittedAlternativeTime = false;
+        state.trialBookingRequirementCompleted = false;
       });
   },
 });

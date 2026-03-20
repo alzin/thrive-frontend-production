@@ -469,10 +469,14 @@ export const CourseManagement: React.FC = () => {
       <Grid container spacing={3}>
         {coursesLoading &&
           Array.from({ length: 6 }).map((_, index) => (
-            <Grid size={{ xs: 12, md: 4 }} key={`course-skeleton-${index}`}>
-              <Card>
+            <Grid
+              size={{ xs: 12, md: 4 }}
+              key={`course-skeleton-${index}`}
+              sx={{ display: "flex" }}
+            >
+              <Card sx={{ display: "flex", flexDirection: "column", width: "100%", height: "100%" }}>
                 <Skeleton variant="rectangular" height={120} />
-                <CardContent>
+                <CardContent sx={{ flexGrow: 1 }}>
                   <Skeleton variant="text" width="70%" height={36} />
                   <Skeleton variant="text" width="100%" />
                   <Skeleton variant="text" width="90%" />
@@ -490,6 +494,7 @@ export const CourseManagement: React.FC = () => {
           <Grid
             size={{ xs: 12, md: 4 }}
             key={course.id}
+            sx={{ display: "flex" }}
             draggable
             onDragStart={(e) => handleCourseDragStart(e, course)}
             onDragEnd={handleCourseDragEnd}
@@ -502,6 +507,9 @@ export const CourseManagement: React.FC = () => {
               style={{
                 cursor: 'grab',
                 transition: 'all 0.2s ease',
+                width: '100%',
+                height: '100%',
+                display: 'flex',
                 transform: dragOverCourseIndex === index && draggedCourse?.id !== course.id
                   ? 'translateY(-8px)'
                   : 'none',
@@ -510,6 +518,10 @@ export const CourseManagement: React.FC = () => {
             >
               <Card
                 sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  width: '100%',
+                  height: '100%',
                   position: 'relative',
                   boxShadow: dragOverCourseIndex === index && draggedCourse?.id !== course.id
                     ? 4
@@ -518,7 +530,8 @@ export const CourseManagement: React.FC = () => {
                     ? '2px solid #1976d2'
                     : 'none',
                   '&:active': {
-                    cursor: 'grabbing'
+                    cursor: 'grabbing',
+                    minHeight: "100%"
                   }
                 }}
               >
@@ -555,7 +568,7 @@ export const CourseManagement: React.FC = () => {
                 >
                   {course.icon}
                 </Box>
-                <CardContent>
+                <CardContent sx={{ flexGrow: 1 }}>
                   <Stack
                     direction="row"
                     justifyContent="space-between"
@@ -600,7 +613,7 @@ export const CourseManagement: React.FC = () => {
                     {course.lessonCount || 0} lessons
                   </Typography>
                 </CardContent>
-                <CardActions>
+                <CardActions sx={{ mt: "auto" }}>
                   <Button
                     size="small"
                     onClick={() => {
