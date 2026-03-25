@@ -41,6 +41,7 @@ import {
   SessionsTable,
   StatsCards,
 } from "../../components/admin/session-management";
+import { AttendeesDialog, useAttendeesDialog } from "../../components/calendar";
 
 export const SessionManagement: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -66,6 +67,8 @@ export const SessionManagement: React.FC = () => {
   const [deleteDialog, setDeleteDialog] = useState(false);
   const [editingSession, setEditingSession] = useState<Session | null>(null);
   const [sessionToDelete, setSessionToDelete] = useState<Session | null>(null);
+  const { attendeesDialog, setAttendeesDialog, attendees, fetchAttendees } =
+    useAttendeesDialog();
 
   // Snackbar state
   const [snackbar, setSnackbar] = useState({
@@ -242,6 +245,18 @@ export const SessionManagement: React.FC = () => {
     }
   };
 
+  const handleViewParticipants = async (session: Session) => {
+    try {
+      await fetchAttendees(session);
+    } catch {
+      setSnackbar({
+        open: true,
+        message: "Failed to load session participants",
+        severity: "error",
+      });
+    }
+  };
+
   // Handle pagination
   const handlePageChange = (
     event: React.ChangeEvent<unknown>,
@@ -381,6 +396,7 @@ export const SessionManagement: React.FC = () => {
                   setEditingSession={setEditingSession}
                   setFormFromSession={(s) => dispatch(setFormFromSession(s))}
                   onDelete={(s) => handleDeleteSession(s)}
+                  onViewParticipants={(s) => handleViewParticipants(s)}
                 />
 
                 {/* Bottom Pagination */}
@@ -438,6 +454,13 @@ export const SessionManagement: React.FC = () => {
           onChange={(patch) => dispatch(updateForm(patch))}
           submitting={creating || updating}
           onSubmit={handleSaveSession}
+        />
+
+        <AttendeesDialog
+          open={!!attendeesDialog}
+          onClose={() => setAttendeesDialog(null)}
+          session={attendeesDialog}
+          attendees={attendees}
         />
 
         {/* Snackbar for notifications */}
