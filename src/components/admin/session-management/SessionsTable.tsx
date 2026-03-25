@@ -13,6 +13,7 @@ import {
   Tooltip,
   IconButton,
   Box,
+  Button,
 } from "@mui/material";
 import {
   AccessTime,
@@ -57,6 +58,7 @@ const getRelativeTime = (date: string) => {
 const SessionRow: React.FC<{
   session: Session;
   onDelete: (s: Session) => void;
+  onViewParticipants: (s: Session) => void;
   updating: boolean;
   deleting: boolean;
   dispatch: any;
@@ -66,6 +68,7 @@ const SessionRow: React.FC<{
 }> = ({
   session,
   onDelete,
+  onViewParticipants,
   updating,
   deleting,
   dispatch,
@@ -75,7 +78,7 @@ const SessionRow: React.FC<{
 }) => {
   const sessionStartTime = new Date(session.scheduledAt);
   const sessionEndTime = new Date(
-    sessionStartTime.getTime() + session.duration * 60000
+    sessionStartTime.getTime() + session.duration * 60000,
   );
   const isPast = sessionEndTime < new Date();
   const fillPercentage =
@@ -173,9 +176,23 @@ const SessionRow: React.FC<{
             <Event sx={{ fontSize: 16 }} />
           )}
           <Chip
-            label={session.type === "SPEAKING" ? "Speaking" : session.type === "PREMIUM" ? "Premium" : session.type === "STANDARD" ? "Standard" : "Event"}
+            label={
+              session.type === "SPEAKING"
+                ? "Speaking"
+                : session.type === "PREMIUM"
+                  ? "Premium"
+                  : session.type === "STANDARD"
+                    ? "Standard"
+                    : "Event"
+            }
             size="small"
-            color={session.type === "SPEAKING" || session.type === "PREMIUM" ? "primary" : session.type === "STANDARD" ? "info" : "secondary"}
+            color={
+              session.type === "SPEAKING" || session.type === "PREMIUM"
+                ? "primary"
+                : session.type === "STANDARD"
+                  ? "info"
+                  : "secondary"
+            }
             sx={{ color: "white" }}
           />
         </Stack>
@@ -227,17 +244,22 @@ const SessionRow: React.FC<{
                   fillPercentage >= 100
                     ? "error.main"
                     : fillPercentage >= 80
-                    ? "warning.main"
-                    : "success.main",
+                      ? "warning.main"
+                      : "success.main",
                 height: "100%",
                 borderRadius: 1,
                 transition: "width 0.3s ease",
               }}
             />
           </Box>
-          <Typography variant="caption" color="text.secondary">
+          <Typography variant="caption" color="success.main">
             {Math.round(fillPercentage)}% filled
           </Typography>
+        </Stack>
+        <Stack>
+          <Button onClick={() => onViewParticipants(session)}>
+            View Participants
+          </Button>
         </Stack>
       </TableCell>
 
@@ -259,7 +281,7 @@ const SessionRow: React.FC<{
 
       {/* Actions */}
       <TableCell align="right">
-        <Stack direction="row" spacing={0.5}>
+        <Stack direction="row" spacing={0.5} justifyContent="flex-end">
           <Tooltip title="Edit session">
             <IconButton
               size="small"
@@ -293,6 +315,7 @@ const SessionRow: React.FC<{
 export const SessionsTable: React.FC<{
   sessions: Session[];
   onDelete: (s: Session) => void;
+  onViewParticipants: (s: Session) => void;
   updating: boolean;
   deleting: boolean;
   dispatch: any;
